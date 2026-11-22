@@ -1,0 +1,17 @@
+[gd_scene load_steps=2 format=3]
+[ext_resource type="PackedScene" path="res://scenes/obstacle.tscn" id="1"]
+[node name="Obstacles" type="Node3D"]
+[node name="PartialInner" parent="." instance=ExtResource("1")]
+z_position = -40.0
+width_degrees = 100.0
+[node name="FullInner" parent="." instance=ExtResource("1")]
+kind = 1
+z_position = -65.0
+[node name="PartialOuter" parent="." instance=ExtResource("1")]
+kind = 2
+z_position = -90.0
+width_degrees = 110.0
+[node name="SecondInner" parent="." instance=ExtResource("1")]
+z_position = -112.0
+angle_degrees = 180.0
+width_degrees = 100.0
