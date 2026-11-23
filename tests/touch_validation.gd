@@ -25,7 +25,7 @@ func tap(time: int, id: int = 0) -> void:
 	press(id, Vector2(0.5, 0.5), true, time)
 	press(id, Vector2(0.5, 0.5), false, time + 40)
 func run() -> void:
-	var main = load("res://scenes/main.tscn").instantiate()
+	var main = load("res://scenes/legacy_main.tscn").instantiate()
 	root.add_child(main)
 	main.get_node("Collision").enabled = false # Free-running regression fixture.
 	main.process_mode = Node.PROCESS_MODE_DISABLED
@@ -136,4 +136,3 @@ func run() -> void:
 	touch.process_mode = Node.PROCESS_MODE_INHERIT
 	print("Touch validation failures: ", failures)
 	quit(0 if failures == 0 else 1)
-

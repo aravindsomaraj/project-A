@@ -3,7 +3,7 @@ extends SceneTree
 func _initialize() -> void:
 	call_deferred("run")
 func run() -> void:
-	var scene = load("res://scenes/main.tscn").instantiate()
+	var scene = load("res://scenes/legacy_main.tscn").instantiate()
 	root.add_child(scene)
 	scene.get_node("Collision").enabled = false # Free-running regression fixture.
 	scene.process_mode = Node.PROCESS_MODE_DISABLED
@@ -43,4 +43,3 @@ func run() -> void:
 			c._process(0.2)
 	print("Rendered phase checks: ", failures, " failures; 32 captures saved.")
 	quit(0 if failures == 0 else 1)
-

@@ -7,7 +7,7 @@ func check(value: bool, message: String) -> void:
 		failures += 1
 		push_error(message)
 func run() -> void:
-	var scene = load("res://scenes/main.tscn").instantiate()
+	var scene = load("res://scenes/legacy_main.tscn").instantiate()
 	root.add_child(scene)
 	scene.get_node("Collision").enabled = false # Free-running regression fixture.
 	scene.process_mode = Node.PROCESS_MODE_DISABLED
@@ -83,5 +83,3 @@ func run() -> void:
 		check((c.position - p.position - relative).length() < 0.6, "Camera jumped at phase loop/steering resume")
 	print("Transition validation failures: ", failures)
 	quit(0 if failures == 0 else 1)
-
-

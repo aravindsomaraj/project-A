@@ -2,6 +2,7 @@ class_name RunnerCollision
 extends Node
 ## Swept capsule envelope in unwrapped angle/Z space. Independent of placement.
 @export var obstacle_root: Node
+@export var repeat_track := true ## Legacy fixed-course fixture only.
 var enabled := true
 
 func sweep(player: CylinderRunnerPlayer, start_angle: float, end_angle: float,
@@ -13,6 +14,8 @@ func sweep(player: CylinderRunnerPlayer, start_angle: float, end_angle: float,
 	if player.transition.active:
 		boundary = (player.transition.duration - player.transition.elapsed) / maxf(delta, 0.000001)
 	for obstacle: RunnerObstacle in obstacle_root.get_children():
+		if not obstacle.visible:
+			continue
 		var begin := 0.0
 		var end := 1.0
 		var exclusive_end := false
@@ -37,6 +40,9 @@ func sweep(player: CylinderRunnerPlayer, start_angle: float, end_angle: float,
 		# spanning an entire loop. No obstacle generation occurs here.
 		var first := floori((minf(start_z, end_z) - obstacle.z_position - z_pad) / player.loop_length)
 		var last := ceili((maxf(start_z, end_z) - obstacle.z_position + z_pad) / player.loop_length)
+		if not repeat_track:
+			first = 0
+			last = 0
 		for lap in range(first, last + 1):
 			var center_z := obstacle.z_position + lap * player.loop_length
 			var interval := _slab(start_z, end_z, center_z - z_pad, center_z + z_pad, Vector2(begin, end))

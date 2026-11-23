@@ -16,7 +16,7 @@ func _check(condition: bool, message: String) -> void:
 
 
 func _run() -> void:
-	var main := load("res://scenes/main.tscn").instantiate() as Node3D
+	var main := load("res://scenes/legacy_main.tscn").instantiate() as Node3D
 	root.add_child(main)
 	main.get_node("Collision").enabled = false # Free-running regression fixture.
 	main.process_mode = Node.PROCESS_MODE_DISABLED
@@ -225,4 +225,3 @@ func _check_surface_frame(player: CylinderRunnerPlayer, camera: CylinderRunnerCa
 		var segment := Vector2(player.position.x, player.position.y) - camera_xy
 		var fraction := clampf(-camera_xy.dot(segment) / maxf(segment.length_squared(), 0.000001), 0.0, 1.0)
 		_check((camera_xy + segment * fraction).length() > player.cylinder_radius + camera.near, "Cylinder obscures exterior player")
-

@@ -19,7 +19,7 @@ func start(angle: float, z: float, outside: bool = false) -> void:
 	p._update_surface_transform()
 	scene.get_node("RunnerCamera").snap_to_target()
 func run() -> void:
-	scene = load("res://scenes/main.tscn").instantiate()
+	scene = load("res://scenes/legacy_main.tscn").instantiate()
 	root.add_child(scene)
 	scene.process_mode = Node.PROCESS_MODE_DISABLED
 	p = scene.get_node("Player")
@@ -143,5 +143,3 @@ func run() -> void:
 	check(not p.dead and switched and p.forward_position > -40, "Fixed course could not be completed and looped")
 	print("Obstacle validation failures: ", failures)
 	quit(0 if failures == 0 else 1)
-
-

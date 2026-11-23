@@ -1,6 +1,6 @@
 # CylinderRunner — Agent Handoff / Memory Bank
 
-Last updated: 2026-11-20. Read this before editing. Keep it current after each
+Last updated: 2026-11-24. Read this before editing. Keep it current after each
 coding task. The project `AGENTS.md` specifically requires updating this file.
 
 ## Project snapshot
@@ -8,7 +8,7 @@ coding task. The project `AGENTS.md` specifically requires updating this file.
 - Godot 4.7.2 stable, GDScript, Mobile renderer, landscape Android target.
 - Viewport 1280x720; stretch aspect `expand` for differing landscape ratios.
 - Startup scene: `scenes/main.tscn`; no external art assets.
-- Cylinder radius 8, fixed mesh length 200 along -Z, open-ended.
+- Cylinder radius 8; pooled track sections extend continuously along -Z.
 - Capsule height 2, radius .45; no physics body, gravity or collision shapes.
 - Nominal run speed 18 units/s, angular steering speed 130 degrees/s.
 - Main run loop reuses Z=-20..-120 and shifts player/camera by 100 units.
@@ -37,7 +37,7 @@ coding task. The project `AGENTS.md` specifically requires updating this file.
 - Camera follows player local up, quaternion smoothing, priority 10. Separate live
   source-view camera/proxy is enabled only during transitions.
 
-## Phase 5 obstacles (current)
+## Phase 5 obstacle foundation (legacy course fixture)
 
 - Main instantiates `scenes/obstacle_course.tscn`, a fixed course with:
   - Partial inner: 0 deg, 100 deg width, Z=-40.
@@ -100,6 +100,49 @@ sandbox root certificate-store error; it does not block editor import, tests or
 rendering. Godot was run with command-local `APPDATA=.godot/validation/appdata`.
 Android build/device performance and manual phone play remain unverified.
 
-Do not add procedural generation, coins, scoring, power-ups, menus or progression
+Do not add coins, scoring, power-ups, menus or difficulty progression
 unless requested. For Phase 6, retain obstacle definitions independent of collision
 and validate wrap/switch interactions before replacing the fixed course.
+
+
+## Phase 6 current architecture (supersedes fixed-course startup notes)
+
+- main.tscn now uses Generator + an initially empty Obstacles root. main.gd binds
+  a sweep wrapper that generates the entire proposed movement path + 200 units
+  ahead BEFORE collision. It retires segments after movement (priority 20).
+- track_generator.gd pools track_segment.tscn instances, one shared tunnel mesh,
+  two reusable obstacle nodes/segment and cached meshes/materials per pattern.
+  Default length 80; opening segment clear; row at each subsequent midpoint.
+  Keep 200 ahead; retire segments with rear edge >30 behind. Normal pool <=7 in
+  tests; exceptional huge frames can increase retained peak pool allocation.
+- patterns/standard.tres + obstacle_pattern_library.gd: native exported library
+  with 11 patterns, each declaring safe surface/angle and up to two simultaneous
+  obstacles. Validated against capsule angular envelope +10deg margin. Invalid
+  entries rejected. Pattern format and names documented in README.
+- Spacing: max(minimum length, speed * (PI/angular_speed + 8/steering_response +
+  transition_duration + switch_cooldown + reaction_time) + full collision slab),
+  rounded to marking period 10. Settings are sampled at startup. Restart scene
+  after changing movement, sizes, spacing or library. No difficulty progression.
+- Player movement/camera/touch logic unchanged. loop_length=1000 now implements
+  floating origin: generator moves segments/obstacle Z/cursor on existing wrap
+  signal. Seed/pattern index do NOT reset at a coordinate wrap.
+- Collision repeat_track=false on generated main scene; invisible pool obstacles
+  skipped. repeat_track=true remains default for legacy_main.tscn fixture.
+- run_status.restart invokes main.restart_course after player reset. Generator
+  reseeds and reuses the pool; same seed restores sequence. Live phase behavior
+  and source-until-completion collision rule preserved.
+- Debug Inspector: seed_value=1337, forced_patterns repeats library indices,
+  debug_log prints seed/index/id/Z; active/pool and last 64 history entries inspectable.
+- Existing main was preserved as scenes/legacy_main.tscn + scripts/legacy_main.gd.
+  Older tests/captures target that fixture; generation tests target main.tscn.
+
+Validation performed: all five suites pass. Generation suite verifies every ordered
+pair of 11 supplied patterns at forward speeds 18/40/80 at 60 FPS (363 navigated
+cases), each initial approach, plus three seeded 10,000-frame collision-enabled
+runs, pool/rebase coverage, deterministic restart and different seeds. These tests
+validate routes for specified configurations, not arbitrary custom content or all
+possible player states. Existing controller tests retain 30/60/144 FPS coverage.
+Mobile renderer generated_track.png inspected; native Android/performance untested.
+Resource library is preloaded for export. Standard Godot certificate-store sandbox
+error remains non-blocking. Documentation-only old references to fixed geometry
+apply to the legacy fixture. No Phase 7 or unrelated systems implemented.

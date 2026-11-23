@@ -40,6 +40,8 @@ func restart() -> void:
 	input.reset_input()
 	input.set_process_unhandled_input(true)
 	player.reset_run()
+	if get_parent().has_method("restart_course"):
+		get_parent().restart_course()
 	get_parent().get_node("RunnerCamera").snap_to_target()
 
 func _input(event: InputEvent) -> void:

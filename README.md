@@ -205,3 +205,77 @@ Collision to isolate the systems they test. Godot 4.7.2 import passed without
 script/resource errors. Launched D3D12 Forward Mobile and inspected four obstacle
 views and game over. Captures: .godot/validation/obstacle_*.png. Real Android hardware
 and manual gameplay remain unverified. Certificate-store environment error persists.
+
+## Phase 6: procedural endless track (current startup)
+
+F5 now runs a seeded segment stream. The fixed Phase 5 course remains in
+scenes/legacy_main.tscn for regression tests. The tunnel is composed of reusable
+scenes/track_segment.tscn instances sharing a mesh. Default segments are 80 units
+long, with one obstacle row in the middle. The first segment is clear. Generation
+keeps at least 200 units ahead and retires whole segments more than 30 units behind.
+Two obstacle nodes per pooled segment are reused; meshes/materials are cached per
+pattern. Hidden pooled obstacles are excluded from collision.
+
+scripts/track_generator.gd owns generation, seed, pooling and spacing. The player
+still uses its existing wrap signal, now every 1000 units solely to keep coordinates
+small: all active segments, obstacles and the generation cursor shift by the same
+amount. Pattern indices keep increasing; content is not repeated at the wrap.
+Generated collision uses actual obstacle positions, with periodic Z copies disabled.
+Large movement frames are populated before the collision sweep runs.
+
+### Library and connection rules
+
+patterns/standard.tres is a native Godot resource containing 11 configurable pattern
+dictionaries. Each defines id, surface (0 inside/1 outside), angle (safe route in
+degrees), and obstacles (up to two [kind, center_degrees, width_degrees] entries).
+Kinds: 0 partial inner, 1 full inner, 2 partial outer. All obstacles occupy the same
+row, using existing height 2.4/depth 1.2 and colors. The library includes four inner
+arcs, one inner ring, two outer arcs, two opposed-surface patterns, and two ring +
+outer-arc combinations. It is preloaded so Android export includes the resource.
+
+The validator rejects blocked safe routes, accounting for capsule angular size and
+an extra 10-degree margin. Connection spacing budgets a worst-case half-turn,
+8/steering_response seconds of acceleration/braking allowance, switch duration,
+cooldown, configurable reaction_time and capsule/depth clearance. Segment length
+is the larger of this computed spacing (rounded to 10 units) and the minimum.
+Speed and pattern distributions do not progress with distance.
+
+This is conservative spacing plus tested route transitions, not a general planner.
+Every ordered pair in the supplied 11-pattern library passed simulated navigation
+using real movement, switches and collision at forward speeds 18/40/80, 60 FPS
+(363 cases). Every initial pattern is also reachable from reset in these tests.
+Three seeded 10,000-frame runs passed with collision enabled. This establishes
+routes for those tested configurations, not survival for every player action,
+custom pattern, device frame rate or modified controller configuration.
+
+### Reproduce and inspect
+
+Select Generator in main.tscn:
+
+- seed_value (default 1337): same seed/controller/library repeats on restart.
+- forced_patterns: optional repeating zero-based library indices, e.g. [9,7,4,2].
+- debug_log: prints seed, logical segment index, pattern id and current Z.
+- minimum_segment_length and reaction_time: constant spacing controls.
+- pattern_library: replace/edit the resource to author patterns.
+
+Remote Inspector exposes active/pool arrays, segment indices/pattern indices and
+history (last 64 assignments). Restart via R/button resets RNG, logical cursor,
+player and camera, reusing pool instances. Stop/relaunch the game after editing
+speed, steering response, capsule size, library or spacing: geometry and spacing
+are built at scene initialization, not dynamically retuned for Phase 7 yet.
+
+### Validation and limitations
+
+`godot --headless --path . --script res://tests/generation_validation.gd`
+
+Checks pair routes, initial approaches, spacing, seed repeat/difference, restart,
+object reuse, long-run coverage, rebasing, bounded history and ordinary pool size
+(no more than seven segments in the tested runs). Existing four suites pass using
+the preserved legacy fixture. Editor import passed. generation_capture.gd launches
+Mobile rendering and writes .godot/validation/generated_track.png; that capture was
+visually inspected. No native phone test or Android performance profile was run.
+
+A single extreme frame/teleport can temporarily enlarge the pool to cover the whole
+swept path; its peak allocation is retained for reuse. The source viewport still
+adds rendering cost only during phase switching. The existing sandbox certificate
+store error remains non-blocking. No scoring, coins, power-ups or progression added.

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/obstacle_pattern_library.gd" id="1"]
+[resource]
+script = ExtResource("1")
+patterns = Array[Dictionary]([
+ {"id":"inner_floor","surface":0,"angle":180,"obstacles":[[0,0,100]]},
+ {"id":"inner_right","surface":0,"angle":270,"obstacles":[[0,90,100]]},
+ {"id":"inner_ceiling","surface":0,"angle":0,"obstacles":[[0,180,100]]},
+ {"id":"inner_left","surface":0,"angle":90,"obstacles":[[0,270,100]]},
+ {"id":"inner_ring","surface":1,"angle":0,"obstacles":[[1,0,360]]},
+ {"id":"outer_floor","surface":1,"angle":180,"obstacles":[[2,0,120]]},
+ {"id":"outer_ceiling","surface":1,"angle":0,"obstacles":[[2,180,120]]},
+ {"id":"opposed_floor","surface":0,"angle":180,"obstacles":[[0,0,120],[2,180,120]]},
+ {"id":"opposed_ceiling","surface":0,"angle":0,"obstacles":[[0,180,120],[2,0,120]]},
+ {"id":"ring_outer_right","surface":1,"angle":270,"obstacles":[[1,0,360],[2,90,120]]},
+ {"id":"ring_outer_left","surface":1,"angle":90,"obstacles":[[1,0,360],[2,270,120]]}
+])
+
